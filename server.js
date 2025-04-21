@@ -92,8 +92,8 @@ app.post("/api/reviews", (req, res) => {
   }
 
   const newReview = {
+    _id: String(Date.now()),
     ...value,
-    id: reviews.length + 1,
     date: new Date().toLocaleDateString()
   };
 
