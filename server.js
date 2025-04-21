@@ -11,7 +11,7 @@ app.use(cors());
 // In-memory reviews array
 const reviews = [
   {
-    id: 1,
+    _id: "1", // changed from id
     title: "Great Work!",
     rating: 5,
     code: "ABC123",
@@ -21,7 +21,7 @@ const reviews = [
     reviewer: "Colson"
   },
   {
-    id: 2,
+    _id: "2",
     title: "Very Professional",
     rating: 3,
     code: "XYZ789",
@@ -31,6 +31,43 @@ const reviews = [
     reviewer: "Colson"
   }
 ];
+
+app.put("/api/reviews/:id", (req, res) => {
+  const schema = Joi.object({
+    title: Joi.string().min(3).required(),
+    rating: Joi.number().min(1).max(5).required(),
+    code: Joi.string().required(),
+    description: Joi.string().min(10).required(),
+    image: Joi.string().required(),
+    reviewer: Joi.string().required()
+  });
+
+  const { error, value } = schema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
+  const reviewId = req.params.id;
+  const index = reviews.findIndex(r => r._id === reviewId);
+  if (index === -1) return res.status(404).json({ error: "Review not found" });
+
+  const updatedReview = {
+    ...reviews[index],
+    ...value
+  };
+
+  reviews[index] = updatedReview;
+  res.status(200).json(updatedReview);
+});
+
+app.delete("/api/reviews/:id", (req, res) => {
+  const reviewId = req.params.id;
+  const index = reviews.findIndex(r => r._id === reviewId);
+  if (index === -1) return res.status(404).json({ error: "Review not found" });
+
+  reviews.splice(index, 1);
+  res.status(200).json({ message: "Review deleted" });
+});
+
+
 
 // GET route: return all reviews
 app.get("/api/reviews", (req, res) => {
