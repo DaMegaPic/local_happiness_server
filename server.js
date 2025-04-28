@@ -87,9 +87,14 @@ app.post("/api/reviews", async (req, res) => {
   }
 });
 
-// Serve home page (optional if using React separately)
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find();
+    res.json(reviews);
+  } catch (err) {
+    console.error("Error fetching reviews:", err);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  }
 });
 
 // Start server
