@@ -2,35 +2,17 @@ const express = require("express");
 const cors = require("cors");
 const Joi = require("joi");
 const app = express();
+const mongoose = require('mongoose');
+const Review = require('./models/Review');
+
+mongoose.connect("mongodb+srv://localhappinessinbox:Colsoncarey!23@reviews.uv2cxpk.mongodb.net/?retryWrites=true&w=majority&appName=reviews")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log("MongoDB Connection Error:", err));
 
 // Middleware
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
-
-// In-memory reviews array
-const reviews = [
-  {
-    _id: "1", // changed from id
-    title: "Great Work!",
-    rating: 5,
-    code: "ABC123",
-    description: "They did a fantastic job with my kitchen.",
-    image: "kitchen.jpg",
-    date: "1/1/00",
-    reviewer: "Colson"
-  },
-  {
-    _id: "2",
-    title: "Very Professional",
-    rating: 3,
-    code: "XYZ789",
-    description: "Professional and friendly team.",
-    image: "bathroom.jpg",
-    date: "1/1/00",
-    reviewer: "Colson"
-  }
-];
 
 app.put("/api/reviews/:id", (req, res) => {
   const schema = Joi.object({
@@ -70,12 +52,12 @@ app.delete("/api/reviews/:id", (req, res) => {
 
 
 // GET route: return all reviews
-app.get("/api/reviews", (req, res) => {
+app.get("/api/reviews", async (req, res) => {
   res.json(reviews);
 });
 
 // POST route: validate and add a new review
-app.post("/api/reviews", (req, res) => {
+app.post("/api/reviews", async (req, res) => {
   const schema = Joi.object({
     title: Joi.string().min(3).required(),
     rating: Joi.number().min(1).max(5).required(),
@@ -91,14 +73,18 @@ app.post("/api/reviews", (req, res) => {
     return res.status(400).json({ error: error.details[0].message });
   }
 
-  const newReview = {
-    _id: String(Date.now()),
-    ...value,
-    date: new Date().toLocaleDateString()
-  };
+  try {
+    const newReview = new Review({
+      ...value,
+      date: new Date().toLocaleDateString() // generate today's date automatically
+    });
 
-  reviews.push(newReview);
-  res.status(201).json(newReview);
+    const savedReview = await newReview.save();
+    res.status(201).json(savedReview);
+  } catch (err) {
+    console.error("Error saving review:", err);
+    res.status(500).json({ error: "Failed to save review" });
+  }
 });
 
 // Serve home page (optional if using React separately)
