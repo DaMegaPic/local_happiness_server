@@ -95,11 +95,11 @@ app.post("/api/reviews", async (req, res) => {
 
 app.get("/api/reviews", async (req, res) => {
   try {
-    const reviews = await Review.find();
-    res.json(reviews);
+    const reviews = await Review.find(); // fetch all reviews from MongoDB
+    res.json(reviews); // send back as JSON array
   } catch (err) {
-    console.error("Error fetching reviews:", err);
-    res.status(500).json({ error: "Failed to fetch reviews" });
+    console.error("Error fetching reviews:", err.message, err.stack);
+    res.status(500).json({ error: err.message });
   }
 });
 
