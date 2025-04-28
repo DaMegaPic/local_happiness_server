@@ -5,7 +5,7 @@ const app = express();
 const mongoose = require('mongoose');
 const Review = require('./models/Review');
 
-mongoose.connect("mongodb+srv://localhappinessinbox:Colsoncarey!23@reviews.uv2cxpk.mongodb.net/reviews?retryWrites=true&w=majority&appName=reviews")
+mongoose.connect("mongodb+srv://localhappinessinbox:Colsoncarey!23@localhappiness.mongodb.net/reviews?retryWrites=true&w=majority&appName=Cluster0")
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log("MongoDB Connection Error:", err));
 
