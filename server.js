@@ -14,7 +14,7 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
 
-app.put("/api/reviews/:id", (req, res) => {
+app.put("/api/reviews/:id", async (req, res) => {
   const schema = Joi.object({
     title: Joi.string().min(3).required(),
     rating: Joi.number().min(1).max(5).required(),
@@ -27,34 +27,40 @@ app.put("/api/reviews/:id", (req, res) => {
   const { error, value } = schema.validate(req.body);
   if (error) return res.status(400).json({ error: error.details[0].message });
 
-  const reviewId = req.params.id;
-  const index = reviews.findIndex(r => r._id === reviewId);
-  if (index === -1) return res.status(404).json({ error: "Review not found" });
+  try {
+    const updatedReview = await Review.findByIdAndUpdate(
+      req.params.id,
+      { ...value },
+      { new: true }
+    );
 
-  const updatedReview = {
-    ...reviews[index],
-    ...value
-  };
+    if (!updatedReview) {
+      return res.status(404).json({ error: "Review not found" });
+    }
 
-  reviews[index] = updatedReview;
-  res.status(200).json(updatedReview);
-});
-
-app.delete("/api/reviews/:id", (req, res) => {
-  const reviewId = req.params.id;
-  const index = reviews.findIndex(r => r._id === reviewId);
-  if (index === -1) return res.status(404).json({ error: "Review not found" });
-
-  reviews.splice(index, 1);
-  res.status(200).json({ message: "Review deleted" });
+    res.json(updatedReview);
+  } catch (err) {
+    console.error("Error updating review:", err);
+    res.status(500).json({ error: "Failed to update review" });
+  }
 });
 
 
+app.delete("/api/reviews/:id", async (req, res) => {
+  try {
+    const deletedReview = await Review.findByIdAndDelete(req.params.id);
 
-// GET route: return all reviews
-app.get("/api/reviews", async (req, res) => {
-  res.json(reviews);
+    if (!deletedReview) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    res.json({ message: "Review deleted" });
+  } catch (err) {
+    console.error("Error deleting review:", err);
+    res.status(500).json({ error: "Failed to delete review" });
+  }
 });
+
 
 // POST route: validate and add a new review
 app.post("/api/reviews", async (req, res) => {
